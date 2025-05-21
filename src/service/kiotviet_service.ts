@@ -76,6 +76,29 @@ export class KiotVietService {
   const response = await this.client.get('/products', { params: args });
   return response.data;
 }
+  async getProductById(id: string): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.get(`/products/${id}`);
+    return response.data;
+  }
+
+  async createProduct(data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.post('/products', data);
+    return response.data;
+  }
+
+  async updateProduct(id: string, data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.put(`/products/${id}`, data);
+    return response.data;
+  }
+
+  async deleteProduct(id: string): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.delete(`/products/${id}`);
+    return response.data;
+  }
 
   //-------------- Categories ----------------//
 
@@ -91,6 +114,24 @@ export class KiotVietService {
     return response.data;
   }
 
+  async createCategory(data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.post('/categories', data);
+    return response.data;
+  }
+
+  async updateCategory(id: string, data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.put(`/categories/${id}`, data);
+    return response.data;
+  }
+  
+  async deleteCategory(id: string): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.delete(`/categories/${id}`);
+    return response.data;
+  }
+
   //-------------- Orders ----------------//
   async getOrders(args: any): Promise<any> {
     await this.ensureAuth();
@@ -102,13 +143,53 @@ export class KiotVietService {
     const response = await this.client.get(`/orders/${id}`);
     return response.data;
   }
-
+  async createOrder(data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.post('/orders', data);
+    return response.data;
+  }
+  async updateOrder(id: string, data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.put(`/orders/${id}`, data);
+    return response.data;
+  }
+  async deleteOrder(id: string): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.delete(`/orders/${id}`);
+    return response.data;
+  }
+  
   // ------------- Customers ----------------//
   async getCustomers(args: any): Promise<any> {
     await this.ensureAuth();
     const response = await this.client.get('/customers', { params: args });
     return response.data;
   }
-
-  //
+  
+  async getCustomerById(id: string): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.get(`/customers/${id}`);
+    return response.data;
+  }
+  async createCustomer(data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.post('/customers', data);
+    return response.data;
+  }
+  async updateCustomer(id: string, data: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.put(`/customers/${id}`, data);
+    return response.data;
+  }
+  async deleteCustomer(id: string): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.delete(`/customers/${id}`);
+    return response.data;
+  }
+  // ------------- Invoices ----------------//
+  async getInvoices(args: any): Promise<any> {
+    await this.ensureAuth();
+    const response = await this.client.get('/invoices', { params: args });
+    return response.data;
+  }
 }

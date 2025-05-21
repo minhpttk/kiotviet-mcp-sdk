@@ -12,3 +12,4 @@ export const config = {
     port: parseInt(process.env.PORT || '3000')
   }
 };
+console.log(config.kiotviet.clientId, config.kiotviet.clientSecret, config.kiotviet.retailer);
