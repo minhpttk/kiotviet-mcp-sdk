@@ -1,141 +1,139 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+/**
+ * MCP server setup and request handling for KiotViet
+ */
+
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequest,
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 import { KiotVietService } from './service/kiotviet_service';
+import * as schemas from "./types/schemas";
 
-// Export KiotVietService để người dùng có thể sử dụng trực tiếp
-export { KiotVietService };
+/**
+ * Start the KiotViet MCP server
+ */
+export async function startServer(enabledToolsSet?: Set<string>) {
+  const server = new Server(
+    {
+      name: "KiotViet MCP Server",
+      version: "1.0.0",
+    },
+    {
+      capabilities: {
+        tools: {},
+      },
+    }
+  );
 
-// Class để tạo KiotViet MCP Server
-export class KiotVietMcpServer {
-  private server: McpServer;
-  private kiotviet: KiotVietService;
+  const kiotviet = new KiotVietService();
 
-  constructor(kiotvietService?: KiotVietService) {
-    // Cho phép người dùng truyền vào service riêng hoặc tạo mới
-    this.kiotviet = kiotvietService || new KiotVietService();
+  server.setRequestHandler(
+    CallToolRequestSchema,
+    async (request: CallToolRequest) => {
+      console.error("Received CallToolRequest:", request);
+      try {
+        if (!request.params.arguments) {
+          throw new Error("No arguments provided");
+        }
+
+        let response;
+
+        switch (request.params.name) {
+          case "getProducts": {
+            const args = request.params.arguments;
+            response = await kiotviet.getProducts(args);
+            break;
+          }
+
+          case "getCategories": {
+            const args = request.params.arguments;
+            response = await kiotviet.getCategories(args);
+            break;
+          }
+
+          case "getCategoryById": {
+            const args = request.params.arguments;
+            if (!args.id) {
+              throw new Error("Missing required argument: id");
+            }
+            response = await kiotviet.getCategoryById(String(args.id));
+            break;
+          }
+
+          case "getOrders": {
+            const args = request.params.arguments;
+            response = await kiotviet.getOrders(args);
+            break;
+          }
+
+          case "getOrderById": {
+            const args = request.params.arguments;
+            if (!args.id) {
+              throw new Error("Missing required argument: id");
+            }
+            response = await kiotviet.getOrderById(String(args.id));
+            break;
+          }
+
+          case "getCustomers": {
+            const args = request.params.arguments;
+            response = await kiotviet.getCustomers(args);
+            break;
+          }
+
+          default:
+            throw new Error(`Unknown tool: ${request.params.name}`);
+        }
+
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response, null, 2) },
+          ],
+        };
+      } catch (error) {
+        console.error("Error executing tool:", error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                error: error instanceof Error ? error.message : String(error),
+              }),
+            },
+          ],
+        };
+      }
+    }
+  );
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const allTools = [
+      schemas.getProductsTool,
+      schemas.getCategoriesTool,
+      schemas.getCategoryByIdTool,
+      schemas.getOrdersTool,
+      schemas.getOrderByIdTool,
+      schemas.getCustomersTool
+    ];
     
-    this.server = new McpServer({
-      name: 'KiotViet',
-      description: 'KiotViet MCP server',
-      version: '1.0.0',
-    });
+    // If enabledToolsSet is provided, filter tools
+    const tools = enabledToolsSet 
+      ? allTools.filter(tool => enabledToolsSet.has(tool.name))
+      : allTools;
     
-    this.registerTools();
-  }
+    return {
+      tools: tools,
+    };
+  });
 
-  private registerTools() {
-    // Products
-    this.server.tool(
-      "getProducts",
-      {arguments : { page: { type: "number", default: 1 }, pageSize: { type: "number", default: 10 } } },
-      async (args) => {
-        const result = await this.kiotviet.getProducts(args);
-        return {
-          content:[
-            {
-              type: "text",
-              text: `Products: ${JSON.stringify(result)}`,
-            },
-          ]
-        }
-      }
-    );
-
-    // Categories
-    this.server.tool(
-      "getCategories",
-      {arguments : { page: { type: "number", default: 1 }, pageSize: { type: "number", default: 10 } } },
-      async (args) => {
-        const result = await this.kiotviet.getCategories(args);
-        return {
-          content:[
-            {
-              type: "text",
-              text: `Categories: ${JSON.stringify(result)}`,
-            },
-          ]
-        }
-      }
-    );
-
-    this.server.tool(
-      "getCategoryById",
-      {arguments : { id: { type: "string" } } },
-      async (args) => {
-        const result = await this.kiotviet.getCategoryById(args.id);
-        return {
-          content:[
-            {
-              type: "text",
-              text: `Category: ${JSON.stringify(result)}`,
-            },
-          ]
-        }
-      }
-    );
-
-    // Orders
-    this.server.tool(
-      "getOrders",
-      {arguments : { page: { type: "number", default: 1 }, pageSize: { type: "number", default: 10 } } },
-      async (args) => {
-        const result = await this.kiotviet.getOrders(args);
-        return {
-          content:[
-            {
-              type: "text",
-              text: `Orders: ${JSON.stringify(result)}`,
-            },
-          ]
-        }
-      }
-    );
-
-    this.server.tool(
-      "getOrderById",
-      {arguments : { id: { type: "string" } } },
-      async (args) => {
-        const result = await this.kiotviet.getOrderById(args.id);
-        return {
-          content:[
-            {
-              type: "text",
-              text: `Order: ${JSON.stringify(result)}`,
-            },
-          ]
-        }
-      }
-    );
-
-    // Customers
-    this.server.tool(
-      "getCustomers",
-      {arguments : { page: { type: "number", default: 1 }, pageSize: { type: "number", default: 10 } } },
-      async (args) => {
-        const result = await this.kiotviet.getCustomers(args);
-        return {
-          content:[
-            {
-              type: "text",
-              text: `Customers: ${JSON.stringify(result)}`,
-            },
-          ]
-        }
-      }
-    );
-  }
-
-  // Kết nối với StdIO transport (cho Claude Desktop)
-  async connectWithStdio() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    return transport;
-  }
-
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
 }
 
-// Export hàm helper để tạo server nhanh
-export function createStdioServer() {
-  const server = new KiotVietMcpServer();
-  return server.connectWithStdio();
-}
+// Start the server when this file is executed
+(async () => {
+  await startServer();
+})();
