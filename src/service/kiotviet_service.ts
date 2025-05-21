@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { config } from '../config/config';
+import { convertToMarkdown } from '../markdown';
 
 const clientId = "01e89dc6-66a3-4175-a6fd-c13f3e1d0bda"
 const clientSecret ="B6C69FBA6BC01F9722090314D6F05F3CF7E92600"
@@ -63,6 +64,10 @@ export class KiotVietService {
     if (!this.token || new Date() > this.tokenExpiry) {
       await this.authenticate();
     }
+  }
+
+  async toMarkdown(response: any): Promise<string> {
+    return convertToMarkdown(response);
   }
 
   //-------------- Products ----------------//

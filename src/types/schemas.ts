@@ -12,6 +12,12 @@ const paginationProperties = {
         type: "number",
         description: "The number of items per page.",
         default: 10,
+    },
+    format: {
+      type: "string",
+      enum: ["json", "markdown"],
+      description:"Response format (josn or markdown)",
+      default: "markdown",
     }
 }
 
